@@ -12,31 +12,30 @@ import (
 )
 
 type Renderer struct {
-	Face               fonts.Face // TODO []Face?
 	FontSize, PixScale float32
 	Color              color.Color
 }
 
-func (r *Renderer) DrawString(str string, img draw.Image) int {
+func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 	sh := &shaping.HarfbuzzShaper{}
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
 		RunEnd:   len(str),
-		Face:     r.Face,
+		Face:     face,
 		Size:     fixed.I(int(r.FontSize * r.PixScale)),
 	}
 	out := sh.Shape(in)
 	return r.DrawShapedRunAt(out, img, 0, out.LineBounds.Ascent.Ceil())
 }
 
-func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int) int {
+func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts.Face) int {
 	sh := &shaping.HarfbuzzShaper{}
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
 		RunEnd:   len(str),
-		Face:     r.Face,
+		Face:     face,
 		Size:     fixed.I(int(r.FontSize * r.PixScale)),
 	}
 	return r.DrawShapedRunAt(sh.Shape(in), img, x, y)

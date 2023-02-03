@@ -34,8 +34,9 @@ func Test_Render(t *testing.T) {
 	data, _ = os.Open("testdata/NotoSans-Bold.ttf")
 	f, _ = font.ParseTTF(data)
 	r.FontSize = 36
-	r.Color = color.NRGBA{R: 0xcc, G: 0, B: 0x33, A: 0xbb}
-	r.DrawStringAt("RedBold", img, 60, 140, f)
+	r.Color = color.NRGBA{R: 0xcc, G: 0, B: 0x33, A: 0x99}
+	x := r.DrawStringAt("Red", img, 60, 140, f)
+	r.DrawStringAt("Bold", img, x, 140, f)
 
 	w, _ := os.Create("testdata/out.png")
 	png.Encode(w, img)

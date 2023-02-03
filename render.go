@@ -31,6 +31,7 @@ type Renderer struct {
 // DrawString will rasterise the given string into the output image using the specified font face.
 // The text will be drawn starting at the left edge, down from the image top by the 
 // font ascent value, so that the text is all visible.
+// The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 	if r.PixScale == 0 {
 		r.PixScale = 1
@@ -50,6 +51,7 @@ func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 // DrawStringAt will rasterise the given string into the output image using the specified font face.
 // The text will be drawn starting at the x, y pixel position.
 // Note that x and y are not multiplied by the `PixScale` value as they refer to output coordinates.
+// The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts.Face) int {
 	if r.PixScale == 0 {
 		r.PixScale = 1
@@ -68,6 +70,7 @@ func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts
 // DrawShapedRunAt will rasterise the given shaper run into the output image using font face referenced in the shaping.
 // The text will be drawn starting at the startX, startY pixel position.
 // Note that startX and startY are not multiplied by the `PixScale` value as they refer to output coordinates.
+// The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, startY int) int {
 	scale := r.FontSize * r.PixScale / float32(run.Face.Upem())
 	if r.PixScale == 0 {

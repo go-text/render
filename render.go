@@ -14,10 +14,11 @@ import (
 type Renderer struct {
 	FontSize, PixScale float32
 	Color              color.Color
+
+	shaper shaping.Shaper
 }
 
 func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
-	sh := &shaping.HarfbuzzShaper{}
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
@@ -25,12 +26,11 @@ func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 		Face:     face,
 		Size:     fixed.I(int(r.FontSize * r.PixScale)),
 	}
-	out := sh.Shape(in)
+	out := r.cachedShaper().Shape(in)
 	return r.DrawShapedRunAt(out, img, 0, out.LineBounds.Ascent.Ceil())
 }
 
 func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts.Face) int {
-	sh := &shaping.HarfbuzzShaper{}
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
@@ -38,7 +38,7 @@ func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts
 		Face:     face,
 		Size:     fixed.I(int(r.FontSize * r.PixScale)),
 	}
-	return r.DrawShapedRunAt(sh.Shape(in), img, x, y)
+	return r.DrawShapedRunAt(r.cachedShaper().Shape(in), img, x, y)
 }
 
 func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, startY int) int {
@@ -76,6 +76,14 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 	}
 	f.Draw()
 	return int(math.Ceil(float64(x)))
+}
+
+func (r *Renderer) cachedShaper() shaping.Shaper {
+	if r.shaper == nil {
+		r.shaper = &shaping.HarfbuzzShaper{}
+	}
+
+	return r.shaper
 }
 
 func fixed266ToFloat(i fixed.Int26_6) float32 {

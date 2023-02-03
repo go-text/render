@@ -11,13 +11,26 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+// Renderer defines a type that can render strings to a bitmap canvas.
+// The size and look of output depends on the various fields in this struct.
+// Developers should provide suitable output images for their draw requests.
+// This type is not thread safe so instances should be used from only 1 goroutine.
 type Renderer struct {
-	FontSize, PixScale float32
-	Color              color.Color
+	// FontSize defines the point size of output text, commonly between 10 and 14 for regular text
+	FontSize float32
+	// PixScale is used to indicate the pixel density of your output target.
+	// For example on a hi-DPI (or "retina") display this may be 2.0.
+	// Default value is 1.0, meaning
+	PixScale float32
+	// Color is the pen colour for rendering
+	Color    color.Color
 
 	shaper shaping.Shaper
 }
 
+// DrawString will rasterise the given string into the output image using the specified font face.
+// The text will be drawn starting at the left edge, down from the image top by the 
+// font ascent value, so that the text is all visible.
 func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 	if r.PixScale == 0 {
 		r.PixScale = 1
@@ -34,6 +47,9 @@ func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 	return r.DrawShapedRunAt(out, img, 0, out.LineBounds.Ascent.Ceil())
 }
 
+// DrawStringAt will rasterise the given string into the output image using the specified font face.
+// The text will be drawn starting at the x, y pixel position.
+// Note that x and y are not multiplied by the `PixScale` value as they refer to output coordinates.
 func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts.Face) int {
 	if r.PixScale == 0 {
 		r.PixScale = 1
@@ -49,6 +65,9 @@ func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts
 	return r.DrawShapedRunAt(r.cachedShaper().Shape(in), img, x, y)
 }
 
+// DrawShapedRunAt will rasterise the given shaper run into the output image using font face referenced in the shaping.
+// The text will be drawn starting at the startX, startY pixel position.
+// Note that startX and startY are not multiplied by the `PixScale` value as they refer to output coordinates.
 func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, startY int) int {
 	scale := r.FontSize * r.PixScale / float32(run.Face.Upem())
 	if r.PixScale == 0 {

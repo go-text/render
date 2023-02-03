@@ -20,14 +20,14 @@ func Test_Render(t *testing.T) {
 	f, _ := font.ParseTTF(data)
 
 	r := &render.Renderer{
-		FontSize: 24,
-		PixScale: float32(2),
+		FontSize: 48,
 		Color:    color.Black,
 	}
 	str := "Hello! ± सभमन"
 	r.DrawString(str, img, f)
 	r.DrawStringAt(str, img, 0, 100, f)
 
+	r.PixScale = 2
 	r.Color = color.Gray{Y: 0xcc}
 	r.DrawStringAt("baseline", img, 0, 180, f)
 

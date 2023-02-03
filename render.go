@@ -19,6 +19,10 @@ type Renderer struct {
 }
 
 func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
+	if r.PixScale == 0 {
+		r.PixScale = 1
+	}
+
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
@@ -31,6 +35,10 @@ func (r *Renderer) DrawString(str string, img draw.Image, face fonts.Face) int {
 }
 
 func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts.Face) int {
+	if r.PixScale == 0 {
+		r.PixScale = 1
+	}
+
 	in := shaping.Input{
 		Text:     []rune(str),
 		RunStart: 0,
@@ -43,6 +51,9 @@ func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face fonts
 
 func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, startY int) int {
 	scale := r.FontSize * r.PixScale / float32(run.Face.Upem())
+	if r.PixScale == 0 {
+		r.PixScale = 1
+	}
 
 	b := img.Bounds()
 	scanner := rasterx.NewScannerGV(b.Dx(), b.Dy(), img, b)

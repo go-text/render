@@ -105,7 +105,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		}
 		f.Stop(true)
 
-		x += fixed266ToFloat(g.XAdvance)
+		x += fixed266ToFloat(g.XAdvance) * r.PixScale
 	}
 	f.Draw()
 	return int(math.Ceil(float64(x)))

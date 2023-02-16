@@ -42,3 +42,29 @@ func Test_Render(t *testing.T) {
 	png.Encode(w, img)
 	w.Close()
 }
+
+func TestRender_PixScaleAdvance(t *testing.T) {
+	img := image.NewNRGBA(image.Rect(0, 0, 350, 180))
+
+	data, _ := os.Open("testdata/NotoSans-Regular.ttf")
+	f, _ := font.ParseTTF(data)
+
+	r := &render.Renderer{
+		FontSize: 48,
+		Color:    color.Black,
+	}
+	str := "Testing"
+	adv0 := r.DrawString(str, img, f)
+
+	r.PixScale = 1 // instead of the zero value
+	adv1 := r.DrawString(str, img, f)
+	if adv0 != adv1 {
+		t.Error("unscaled font did not advance as default")
+	}
+
+	r.PixScale = 2
+	adv2 := r.DrawString(str, img, f)
+	if adv2 <= int(float32(adv1)*1.9) || adv2 >= int(float32(adv1)*2.1) {
+		t.Error("scaled font did not advance proportionately")
+	}
+}

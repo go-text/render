@@ -5,14 +5,14 @@ import (
 	"image"
 	"image/draw"
 	"io"
-	"log"
 
 	"github.com/go-text/typesetting/opentype/api"
+	"github.com/go-text/typesetting/shaping"
 	"github.com/srwiley/oksvg"
 	"github.com/srwiley/rasterx"
 )
 
-func (r *Renderer) drawSVG(svg api.GlyphSVG, img draw.Image, x, y float32) (advance float32, err error) {
+func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x, y float32) (advance float32, err error) {
 	h := r.FontSize * r.PixScale
 	pix, err := renderSVGStream(bytes.NewReader(svg.Source), int(h), int(h))
 	if err != nil {
@@ -21,7 +21,7 @@ func (r *Renderer) drawSVG(svg api.GlyphSVG, img draw.Image, x, y float32) (adva
 	draw.Draw(img, pix.Bounds().Add(image.Point{X: int(x), Y: int(y)}), pix, image.Point{}, draw.Over)
 
 	if len(svg.Outline.Segments) > 0 {
-		log.Println("TODO also outline")
+		h += r.drawOutline(g, svg.Outline, r.filler, r.fillerScale, x, y)
 	}
 	return h, nil
 }

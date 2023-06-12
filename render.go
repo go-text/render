@@ -27,7 +27,9 @@ type Renderer struct {
 	// Color is the pen colour for rendering
 	Color color.Color
 
-	shaper shaping.Shaper
+	shaper      shaping.Shaper
+	filler      *rasterx.Filler
+	fillerScale float32
 }
 
 // DrawString will rasterise the given string into the output image using the specified font face.
@@ -78,10 +80,12 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		r.PixScale = 1
 	}
 	scale := r.FontSize * r.PixScale / float32(run.Face.Upem())
+	r.fillerScale = scale
 
 	b := img.Bounds()
 	scanner := rasterx.NewScannerGV(b.Dx(), b.Dy(), img, b)
 	f := rasterx.NewFiller(b.Dx(), b.Dy(), scanner)
+	r.filler = f
 	f.SetColor(r.Color)
 	x := float32(startX)
 	y := float32(startY)
@@ -93,13 +97,13 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 			adv := r.drawOutline(g, format, f, scale, x, y)
 			x += adv
 		case api.GlyphBitmap:
-			adv, err := r.drawBitmap(format, img, x, y)
+			adv, err := r.drawBitmap(g, format, img, x, y)
 			if err != nil {
 				log.Println("Failed to draw bitmap Glyph", err)
 			}
 			x += adv
 		case api.GlyphSVG:
-			adv, err := r.drawSVG(format, img, x, y)
+			adv, err := r.drawSVG(g, format, img, x, y)
 			if err != nil {
 				log.Println("Failed to draw SVG Glyph", err)
 			}
@@ -110,6 +114,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		}
 	}
 	f.Draw()
+	r.filler = nil
 	return int(math.Ceil(float64(x)))
 }
 

@@ -8,13 +8,14 @@ import (
 	_ "image/png"
 	"log"
 
+	"github.com/go-text/typesetting/shaping"
 	_ "golang.org/x/image/tiff" // load image formats for users of the API
 
 	"github.com/go-text/typesetting/opentype/api"
 	"github.com/nfnt/resize"
 )
 
-func (r *Renderer) drawBitmap(bitmap api.GlyphBitmap, img draw.Image, x, y float32) (advance float32, err error) {
+func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.Image, x, y float32) (advance float32, err error) {
 	adv := float32(0)
 
 	switch bitmap.Format {
@@ -34,7 +35,7 @@ func (r *Renderer) drawBitmap(bitmap api.GlyphBitmap, img draw.Image, x, y float
 	}
 
 	if bitmap.Outline != nil {
-		log.Println("TODO also outline")
+		adv += r.drawOutline(g, *bitmap.Outline, r.filler, r.fillerScale, x, y)
 	}
 	return adv, nil
 }

@@ -3,6 +3,7 @@ package render
 import (
 	"image/color"
 	"image/draw"
+	"log"
 	"math"
 
 	"github.com/go-text/typesetting/font"
@@ -86,26 +87,27 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 	y := float32(startY)
 	for _, g := range run.Glyphs {
 		x -= fixed266ToFloat(g.XOffset) * r.PixScale
-		outline, _ := run.Face.GlyphData(g.GlyphID).(api.GlyphOutline)
-
-		for _, s := range outline.Segments {
-			switch s.Op {
-			case api.SegmentOpMoveTo:
-				f.Start(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
-			case api.SegmentOpLineTo:
-				f.Line(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
-			case api.SegmentOpQuadTo:
-				f.QuadBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
-					fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)})
-			case api.SegmentOpCubeTo:
-				f.CubeBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
-					fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)},
-					fixed.Point26_6{X: floatToFixed266(s.Args[2].X*scale + x), Y: floatToFixed266(-s.Args[2].Y*scale + y)})
+		data := run.Face.GlyphData(g.GlyphID)
+		switch format := data.(type) {
+		case api.GlyphOutline:
+			adv := r.drawOutline(g, format, f, scale, x, y)
+			x += adv
+		case api.GlyphBitmap:
+			adv, err := r.drawBitmap(format, img, x, y)
+			if err != nil {
+				log.Println("Failed to draw bitmap Glyph", err)
 			}
+			x += adv
+		case api.GlyphSVG:
+			adv, err := r.drawSVG(format, img, x, y)
+			if err != nil {
+				log.Println("Failed to draw SVG Glyph", err)
+			}
+			x += adv
+			continue
+		default:
+			log.Println("Unsupported glyph type in data", data)
 		}
-		f.Stop(true)
-
-		x += fixed266ToFloat(g.XAdvance) * r.PixScale
 	}
 	f.Draw()
 	return int(math.Ceil(float64(x)))
@@ -117,6 +119,27 @@ func (r *Renderer) cachedShaper() shaping.Shaper {
 	}
 
 	return r.shaper
+}
+
+func (r *Renderer) drawOutline(g shaping.Glyph, bitmap api.GlyphOutline, f *rasterx.Filler, scale float32, x, y float32) float32 {
+	for _, s := range bitmap.Segments {
+		switch s.Op {
+		case api.SegmentOpMoveTo:
+			f.Start(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
+		case api.SegmentOpLineTo:
+			f.Line(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
+		case api.SegmentOpQuadTo:
+			f.QuadBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
+				fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)})
+		case api.SegmentOpCubeTo:
+			f.CubeBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
+				fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)},
+				fixed.Point26_6{X: floatToFixed266(s.Args[2].X*scale + x), Y: floatToFixed266(-s.Args[2].Y*scale + y)})
+		}
+	}
+	f.Stop(true)
+
+	return fixed266ToFloat(g.XAdvance) * r.PixScale
 }
 
 func fixed266ToFloat(i fixed.Int26_6) float32 {

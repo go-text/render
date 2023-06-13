@@ -12,18 +12,18 @@ import (
 	"github.com/srwiley/rasterx"
 )
 
-func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x, y float32) (advance float32, err error) {
+func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x, y float32) error {
 	h := r.FontSize * r.PixScale
 	pix, err := renderSVGStream(bytes.NewReader(svg.Source), int(h), int(h))
 	if err != nil {
-		return 0, err
+		return err
 	}
 	draw.Draw(img, pix.Bounds().Add(image.Point{X: int(x), Y: int(y)}), pix, image.Point{}, draw.Over)
 
 	if len(svg.Outline.Segments) > 0 {
-		h += r.drawOutline(g, svg.Outline, r.filler, r.fillerScale, x, y)
+		r.drawOutline(g, svg.Outline, r.filler, r.fillerScale, x, y)
 	}
-	return h, nil
+	return nil
 }
 
 func renderSVGStream(stream io.Reader, width, height int) (*image.NRGBA, error) {

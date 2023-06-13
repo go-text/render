@@ -90,28 +90,27 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 	x := float32(startX)
 	y := float32(startY)
 	for _, g := range run.Glyphs {
-		x -= fixed266ToFloat(g.XOffset) * r.PixScale
+		xPos := x + fixed266ToFloat(g.XOffset)*r.PixScale
+		yPos := y + fixed266ToFloat(g.YOffset)*r.PixScale
 		data := run.Face.GlyphData(g.GlyphID)
 		switch format := data.(type) {
 		case api.GlyphOutline:
-			adv := r.drawOutline(g, format, f, scale, x, y)
-			x += adv
+			r.drawOutline(g, format, f, scale, xPos, yPos)
 		case api.GlyphBitmap:
-			adv, err := r.drawBitmap(g, format, img, x, y)
+			err := r.drawBitmap(g, format, img, xPos, yPos)
 			if err != nil {
 				log.Println("Failed to draw bitmap Glyph", err)
 			}
-			x += adv
 		case api.GlyphSVG:
-			adv, err := r.drawSVG(g, format, img, x, y)
+			err := r.drawSVG(g, format, img, xPos, yPos)
 			if err != nil {
 				log.Println("Failed to draw SVG Glyph", err)
 			}
-			x += adv
-			continue
 		default:
 			log.Println("Unsupported glyph type in data", data)
 		}
+
+		x += fixed266ToFloat(g.XAdvance) * r.PixScale
 	}
 	f.Draw()
 	r.filler = nil
@@ -126,7 +125,7 @@ func (r *Renderer) cachedShaper() shaping.Shaper {
 	return r.shaper
 }
 
-func (r *Renderer) drawOutline(g shaping.Glyph, bitmap api.GlyphOutline, f *rasterx.Filler, scale float32, x, y float32) float32 {
+func (r *Renderer) drawOutline(g shaping.Glyph, bitmap api.GlyphOutline, f *rasterx.Filler, scale float32, x, y float32) {
 	for _, s := range bitmap.Segments {
 		switch s.Op {
 		case api.SegmentOpMoveTo:
@@ -143,8 +142,6 @@ func (r *Renderer) drawOutline(g shaping.Glyph, bitmap api.GlyphOutline, f *rast
 		}
 	}
 	f.Stop(true)
-
-	return fixed266ToFloat(g.XAdvance) * r.PixScale
 }
 
 func fixed266ToFloat(i fixed.Int26_6) float32 {

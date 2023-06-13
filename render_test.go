@@ -44,6 +44,12 @@ func Test_Render(t *testing.T) {
 	r.FontSize = 36
 	r.DrawStringAt("😀🎁", img, 270, 20, f)
 
+	data, _ = os.Open("testdata/Greybeard-22px.ttf")
+	f, _ = font.ParseTTF(data)
+	r.FontSize = 22
+	r.Color = color.NRGBA{R: 0xcc, G: 0x66, B: 0x33, A: 0xcc}
+	r.DrawStringAt("\uE0A2░", img, 362, 149, f)
+
 	w, _ := os.Create("testdata/out.png")
 	png.Encode(w, img)
 	w.Close()

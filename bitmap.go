@@ -8,10 +8,10 @@ import (
 	_ "image/png"
 
 	"github.com/go-text/typesetting/shaping"
+	scale "golang.org/x/image/draw"
 	_ "golang.org/x/image/tiff" // load image formats for users of the API
 
 	"github.com/go-text/typesetting/opentype/api"
-	"github.com/nfnt/resize"
 )
 
 func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.Image, x, y float32) error {
@@ -53,9 +53,8 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 			}
 		}
 
-		scaled := resize.Resize(uint(fixed266ToFloat(g.Width)*r.PixScale), uint(fixed266ToFloat(g.Height)*r.PixScale),
-			sub, resize.NearestNeighbor)
-		draw.Draw(img, scaled.Bounds().Add(image.Point{X: int(x), Y: int(y)}), scaled, image.Point{}, draw.Over)
+		rect := image.Rect(int(x), int(y), int(fixed266ToFloat(g.Width)*r.PixScale), int(fixed266ToFloat(g.Height)*r.PixScale))
+		scale.NearestNeighbor.Scale(img, rect, sub, sub.Bounds(), draw.Over, nil)
 	case api.JPG, api.PNG, api.TIFF:
 		pix, _, err := image.Decode(bytes.NewReader(bitmap.Data))
 		if err != nil {
@@ -63,8 +62,8 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 		}
 
 		h := r.FontSize * r.PixScale
-		scaled := resize.Resize(uint(h), uint(h), pix, resize.Bicubic)
-		draw.Draw(img, scaled.Bounds().Add(image.Point{X: int(x), Y: int(y)}), scaled, image.Point{}, draw.Over)
+		rect := image.Rect(int(x), int(y), int(h), int(h))
+		scale.BiLinear.Scale(img, rect, pix, pix.Bounds(), draw.Over, nil)
 	}
 
 	if bitmap.Outline != nil {

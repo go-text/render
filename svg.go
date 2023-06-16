@@ -13,8 +13,9 @@ import (
 )
 
 func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x, y float32) error {
-	h := r.FontSize * r.PixScale
-	pix, err := renderSVGStream(bytes.NewReader(svg.Source), int(h), int(h))
+	pixWidth := int(fixed266ToFloat(g.Width) * r.PixScale)
+	pixHeight := int(fixed266ToFloat(-g.Height) * r.PixScale)
+	pix, err := renderSVGStream(bytes.NewReader(svg.Source), pixWidth, pixHeight)
 	if err != nil {
 		return err
 	}

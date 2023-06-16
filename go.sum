@@ -1,7 +1,15 @@
 github.com/go-text/typesetting v0.0.0-20230606200221-26abc51a6c27 h1:eIFR7h3qIaR3W3EbpMwWY8d9yk2L/oQVNtMlxhpWtyc=
 github.com/go-text/typesetting v0.0.0-20230606200221-26abc51a6c27/go.mod h1:KmrpWuSMFcO2yjmyhGpnBGQHSKAoEgMTSSzvLDzCuEA=
+github.com/go-text/typesetting v0.0.0-20230613145208-23beb3605e58 h1:mebqWM1yZ+lXUFE2OBzC4+HkNVevZW+rh17bglbk0UQ=
+github.com/go-text/typesetting v0.0.0-20230613145208-23beb3605e58/go.mod h1:KmrpWuSMFcO2yjmyhGpnBGQHSKAoEgMTSSzvLDzCuEA=
+github.com/go-text/typesetting v0.0.0-20230616151958-ae64920e754b h1:RCT30tpLlk6Oy9S+Okc00ZDjpcREwnJLvfURhSnHV1Y=
+github.com/go-text/typesetting v0.0.0-20230616151958-ae64920e754b/go.mod h1:BmfMYAtNNdVZ2PHBl9WMmHiyYpTx37nmcm+l8SBRWAc=
+github.com/go-text/typesetting v0.0.0-20230616162802-9c17dd34aa4a h1:VjN8ttdfklC0dnAdKbZqGNESdERUxtE3l8a/4Grgarc=
+github.com/go-text/typesetting v0.0.0-20230616162802-9c17dd34aa4a/go.mod h1:evDBbvNR/KaVFZ2ZlDSOWWXIUKq0wCOEtzLxRM8SG3k=
 github.com/go-text/typesetting-utils v0.0.0-20230412163830-89e4bcfa3ecc h1:9Kf84pnrmmjdRzZIkomfjowmGUhHs20jkrWYw/I6CYc=
 github.com/go-text/typesetting-utils v0.0.0-20230412163830-89e4bcfa3ecc/go.mod h1:RaqFwjcYyM5BjbYGwON0H5K0UqwO3sJlo9ukKha80ZE=
+github.com/go-text/typesetting-utils v0.0.0-20230613071030-6a343294c97b h1:kHoaqsh8CZvzxiOq9wWhWBG4T96VOnZ4XSdpen1sIhs=
+github.com/go-text/typesetting-utils v0.0.0-20230616150549-2a7df14b6a22 h1:LBQTFxP2MfsyEDqSKmUBZaDuDHN1vpqDyOZjcqS7MYI=
 github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c h1:km8GpoQut05eY3GiYWEedbTT0qnSxrCjsVbb7yKY1KE=
 github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c/go.mod h1:cNQ3dwVJtS5Hmnjxy6AgTPd0Inb3pW05ftPSX7NZO7Q=
 github.com/srwiley/rasterx v0.0.0-20210519020934-456a8d69b780/go.mod h1:mvWM0+15UqyrFKqdRjY6LuAVJR0HOVhJlEgZ5JWtSWU=

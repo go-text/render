@@ -3,7 +3,6 @@ package render
 import (
 	"image/color"
 	"image/draw"
-	"log"
 	"math"
 
 	"github.com/go-text/typesetting/font"
@@ -97,17 +96,9 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		case api.GlyphOutline:
 			r.drawOutline(g, format, f, scale, xPos, yPos)
 		case api.GlyphBitmap:
-			err := r.drawBitmap(g, format, img, xPos, yPos)
-			if err != nil {
-				log.Println("Failed to draw bitmap Glyph", err)
-			}
+			_ = r.drawBitmap(g, format, img, xPos, yPos)
 		case api.GlyphSVG:
-			err := r.drawSVG(g, format, img, xPos, yPos)
-			if err != nil {
-				log.Println("Failed to draw SVG Glyph", err)
-			}
-		default:
-			log.Println("Unsupported glyph type in data", data)
+			_ = r.drawSVG(g, format, img, xPos, yPos)
 		}
 
 		x += fixed266ToFloat(g.XAdvance) * r.PixScale

@@ -19,7 +19,10 @@ func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x,
 	if err != nil {
 		return err
 	}
-	draw.Draw(img, pix.Bounds().Add(image.Point{X: int(x), Y: int(y)}), pix, image.Point{}, draw.Over)
+
+	rect := image.Rect(int(fixed266ToFloat(g.XBearing)*r.PixScale), int(fixed266ToFloat(-g.YBearing)*r.PixScale),
+		pixWidth, pixHeight)
+	draw.Draw(img, rect.Add(image.Point{X: int(x), Y: int(y)}), pix, image.Point{}, draw.Over)
 
 	if len(svg.Outline.Segments) > 0 {
 		r.drawOutline(g, svg.Outline, r.filler, r.fillerScale, x, y)

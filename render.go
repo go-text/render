@@ -91,7 +91,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 	y := float32(startY)
 	for _, g := range run.Glyphs {
 		xPos := x + fixed266ToFloat(g.XOffset)*r.PixScale
-		yPos := y + -fixed266ToFloat(g.YOffset)*r.PixScale
+		yPos := y - fixed266ToFloat(g.YOffset)*r.PixScale
 		data := run.Face.GlyphData(g.GlyphID)
 		switch format := data.(type) {
 		case api.GlyphOutline:

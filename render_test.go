@@ -42,7 +42,7 @@ func Test_Render(t *testing.T) {
 	data, _ = os.Open("testdata/EmojiOneColor.otf")
 	f, _ = font.ParseTTF(data)
 	r.FontSize = 36
-	r.DrawStringAt("😀🎁", img, 270, 20, f)
+	r.DrawStringAt("😀🎁", img, 270, 80, f)
 
 	data, _ = os.Open("testdata/Greybeard-22px.ttf")
 	f, _ = font.ParseTTF(data)

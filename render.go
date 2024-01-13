@@ -26,9 +26,33 @@ type Renderer struct {
 	// Color is the pen colour for rendering
 	Color color.Color
 
+	segmenter   shaping.Segmenter
 	shaper      shaping.Shaper
 	filler      *rasterx.Filler
 	fillerScale float32
+}
+
+func (r *Renderer) shape(str string, face font.Face) (_ shaping.Line, ascent int) {
+	text := []rune(str)
+	in := shaping.Input{
+		Text:     text,
+		RunStart: 0,
+		RunEnd:   len(text),
+		Face:     face,
+		Size:     fixed.I(int(r.FontSize)),
+	}
+
+	runs := r.segmenter.Split(in, singleFontMap{face})
+
+	line := make(shaping.Line, len(runs))
+	shaper := r.cachedShaper()
+	for i, run := range runs {
+		line[i] = shaper.Shape(run)
+		if a := line[i].LineBounds.Ascent.Ceil(); a > ascent {
+			ascent = a
+		}
+	}
+	return line, ascent
 }
 
 // DrawString will rasterise the given string into the output image using the specified font face.
@@ -36,19 +60,12 @@ type Renderer struct {
 // font ascent value, so that the text is all visible.
 // The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawString(str string, img draw.Image, face font.Face) int {
-	if r.PixScale == 0 {
-		r.PixScale = 1
+	line, ascent := r.shape(str, face)
+	x := 0
+	for _, run := range line {
+		x = r.DrawShapedRunAt(run, img, x, ascent)
 	}
-
-	in := shaping.Input{
-		Text:     []rune(str),
-		RunStart: 0,
-		RunEnd:   len(str),
-		Face:     face,
-		Size:     fixed.I(int(r.FontSize)),
-	}
-	out := r.cachedShaper().Shape(in)
-	return r.DrawShapedRunAt(out, img, 0, out.LineBounds.Ascent.Ceil())
+	return x
 }
 
 // DrawStringAt will rasterise the given string into the output image using the specified font face.
@@ -56,18 +73,11 @@ func (r *Renderer) DrawString(str string, img draw.Image, face font.Face) int {
 // Note that x and y are not multiplied by the `PixScale` value as they refer to output coordinates.
 // The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face font.Face) int {
-	if r.PixScale == 0 {
-		r.PixScale = 1
+	line, _ := r.shape(str, face)
+	for _, run := range line {
+		x = r.DrawShapedRunAt(run, img, x, y)
 	}
-
-	in := shaping.Input{
-		Text:     []rune(str),
-		RunStart: 0,
-		RunEnd:   len(str),
-		Face:     face,
-		Size:     fixed.I(int(r.FontSize)),
-	}
-	return r.DrawShapedRunAt(r.cachedShaper().Shape(in), img, x, y)
+	return x
 }
 
 // DrawShapedRunAt will rasterise the given shaper run into the output image using font face referenced in the shaping.
@@ -142,3 +152,9 @@ func fixed266ToFloat(i fixed.Int26_6) float32 {
 func floatToFixed266(f float32) fixed.Int26_6 {
 	return fixed.Int26_6(int(float64(f) * 64))
 }
+
+type singleFontMap struct {
+	face font.Face
+}
+
+func (sf singleFontMap) ResolveFace(rune) font.Face { return sf.face }

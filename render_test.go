@@ -80,3 +80,22 @@ func TestRender_PixScaleAdvance(t *testing.T) {
 		t.Error("scaled font did not advance proportionately")
 	}
 }
+
+func TestRenderHindi(t *testing.T) {
+	text := "नमस्ते"
+	r := &render.Renderer{
+		FontSize: 30,
+		Color:    color.Black,
+	}
+
+	img := image.NewNRGBA(image.Rect(0, 0, 120, 50))
+	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+	data, _ := os.Open("testdata/NotoSans-Regular.ttf")
+	face, _ := font.ParseTTF(data)
+
+	r.DrawString(text, img, face)
+
+	w, _ := os.Create("testdata/out_hindi.png")
+	png.Encode(w, img)
+	w.Close()
+}

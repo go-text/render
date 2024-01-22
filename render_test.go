@@ -62,24 +62,18 @@ func Test_Render(t *testing.T) {
 		RunEnd:   len(rs),
 		Size:     fixed.I(int(r.FontSize)),
 	}
-	faces := []font.Face{f1, f2, f3}
-	fontRuns := shaping.SplitByFontGlyphs(in, faces)
 	seg := shaping.Segmenter{}
+	runs := seg.Split(in, fixedFontmap([]font.Face{f1, f2, f3}))
+
+	line := make(shaping.Line, len(runs))
+	for i, run := range runs {
+		line[i] = sh.Shape(run)
+	}
 
 	x = 0
-	for _, funtRun := range fontRuns {
-		runs := seg.Split(funtRun, singleFontMap{funtRun.Face})
-
-		line := make(shaping.Line, len(runs))
-		r.Color = color.NRGBA{R: 0x33, G: 0x99, B: 0x33, A: 0xcc}
-
-		for i, run := range runs {
-			line[i] = sh.Shape(run)
-		}
-
-		for _, run := range line {
-			x = r.DrawShapedRunAt(run, img, x, 232)
-		}
+	r.Color = color.NRGBA{R: 0x33, G: 0x99, B: 0x33, A: 0xcc}
+	for _, run := range line {
+		x = r.DrawShapedRunAt(run, img, x, 232)
 	}
 
 	w, _ := os.Create("testdata/out.png")
@@ -132,8 +126,14 @@ func TestRenderHindi(t *testing.T) {
 	w.Close()
 }
 
-type singleFontMap struct {
-	face font.Face
-}
+type fixedFontmap []font.Face
 
-func (sf singleFontMap) ResolveFace(rune) font.Face { return sf.face }
+// ResolveFace panics if the slice is empty
+func (ff fixedFontmap) ResolveFace(r rune) font.Face {
+	for _, f := range ff {
+		if _, has := f.NominalGlyph(r); has {
+			return f
+		}
+	}
+	return ff[0]
+}

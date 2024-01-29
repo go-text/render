@@ -27,7 +27,7 @@ type Renderer struct {
 	Color color.Color
 
 	segmenter   shaping.Segmenter
-	shaper      shaping.Shaper
+	shaper      shaping.HarfbuzzShaper
 	filler      *rasterx.Filler
 	fillerScale float32
 }
@@ -45,9 +45,8 @@ func (r *Renderer) shape(str string, face font.Face) (_ shaping.Line, ascent int
 	runs := r.segmenter.Split(in, singleFontMap{face})
 
 	line := make(shaping.Line, len(runs))
-	shaper := r.cachedShaper()
 	for i, run := range runs {
-		line[i] = shaper.Shape(run)
+		line[i] = r.shaper.Shape(run)
 		if a := line[i].LineBounds.Ascent.Ceil(); a > ascent {
 			ascent = a
 		}
@@ -116,14 +115,6 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 	f.Draw()
 	r.filler = nil
 	return int(math.Ceil(float64(x)))
-}
-
-func (r *Renderer) cachedShaper() shaping.Shaper {
-	if r.shaper == nil {
-		r.shaper = &shaping.HarfbuzzShaper{}
-	}
-
-	return r.shaper
 }
 
 func (r *Renderer) drawOutline(g shaping.Glyph, bitmap api.GlyphOutline, f *rasterx.Filler, scale float32, x, y float32) {

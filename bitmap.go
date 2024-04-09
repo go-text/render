@@ -53,7 +53,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 			}
 		}
 
-		rect := image.Rect(int(x), int(y), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y-fixed266ToFloat(g.Height)*r.PixScale))
+		rect := image.Rect(int(x), int(y-fixed266ToFloat(g.YBearing)*r.PixScale), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y))
 		scale.NearestNeighbor.Scale(img, rect, sub, sub.Bounds(), draw.Over, nil)
 	case api.JPG, api.PNG, api.TIFF:
 		pix, _, err := image.Decode(bytes.NewReader(bitmap.Data))
@@ -61,7 +61,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 			return err
 		}
 
-		rect := image.Rect(int(x), int(y), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y-fixed266ToFloat(g.Height)*r.PixScale))
+		rect := image.Rect(int(x), int(y-fixed266ToFloat(g.YBearing)*r.PixScale), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y))
 		scale.BiLinear.Scale(img, rect, pix, pix.Bounds(), draw.Over, nil)
 	}
 

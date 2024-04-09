@@ -105,7 +105,12 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		case api.GlyphOutline:
 			r.drawOutline(g, format, f, scale, xPos, yPos)
 		case api.GlyphBitmap:
-			_ = r.drawBitmap(g, format, img, xPos, yPos)
+			// align bitmaps to the top edge not baseline
+			e, _ := run.Face.FontVExtents()
+			asc := e.Ascender/float32(run.Face.Upem())
+			yPxOff := asc*fixed266ToFloat(-g.Height)*r.PixScale
+
+			_ = r.drawBitmap(g, format, img, xPos, yPos-yPxOff)
 		case api.GlyphSVG:
 			_ = r.drawSVG(g, format, img, xPos, yPos)
 		}

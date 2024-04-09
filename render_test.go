@@ -155,7 +155,16 @@ func TestBitmapBaseline(t *testing.T) {
 
 	r.DrawString(text, img, face)
 
-	w, _ := os.Create("testdata/bitmap_emoji.png")
-	png.Encode(w, img)
-	w.Close()
+	// compare against the reference
+	var pngBytes bytes.Buffer
+	png.Encode(&pngBytes, img)
+
+	reference, _ := os.ReadFile("testdata/bitmap_emoji.png")
+	if !bytes.Equal(pngBytes.Bytes(), reference) {
+		t.Error("unexpected image output")
+	}
+
+	// w, _ := os.Create("testdata/bitmap_emoji.png")
+	// png.Encode(w, img)
+	// w.Close()
 }

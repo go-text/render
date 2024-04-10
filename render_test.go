@@ -1,6 +1,7 @@
 package render_test
 
 import (
+	"bytes"
 	"image"
 	"image/color"
 	"image/draw"
@@ -13,6 +14,8 @@ import (
 	"github.com/go-text/typesetting/shaping"
 
 	"golang.org/x/image/math/fixed"
+
+	ot "github.com/go-text/typesetting-utils/opentype"
 )
 
 func Test_Render(t *testing.T) {
@@ -136,4 +139,33 @@ func (ff fixedFontmap) ResolveFace(r rune) font.Face {
 		}
 	}
 	return ff[0]
+}
+
+func TestBitmapBaseline(t *testing.T) {
+	text := "\U0001F615\U0001F618\U0001F616"
+	r := &render.Renderer{
+		FontSize: 40,
+		Color:    color.Black,
+	}
+
+	img := image.NewNRGBA(image.Rect(0, 0, 150, 100))
+	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+	data, _ := ot.Files.ReadFile("bitmap/NotoColorEmoji.ttf")
+	face, _ := font.ParseTTF(bytes.NewReader(data))
+
+	r.DrawString(text, img, face)
+
+	// w, _ := os.Create("testdata/bitmap_emoji.png")
+	// png.Encode(w, img)
+	// w.Close()
+
+	// compare against the reference
+	var pngBytes bytes.Buffer
+	png.Encode(&pngBytes, img)
+
+	reference, _ := os.ReadFile("testdata/bitmap_emoji.png")
+	if !bytes.Equal(pngBytes.Bytes(), reference) {
+		t.Error("unexpected image output")
+	}
+
 }

@@ -15,6 +15,10 @@ import (
 )
 
 func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.Image, x, y float32) error {
+	// scaled glyph rect content
+	top := y - fixed266ToFloat(g.YBearing)*r.PixScale
+	bottom := top - fixed266ToFloat(g.Height)*r.PixScale
+	right := x + fixed266ToFloat(g.Width)*r.PixScale
 	switch bitmap.Format {
 	case api.BlackAndWhite:
 		rec := image.Rect(0, 0, bitmap.Width, bitmap.Height)
@@ -53,7 +57,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 			}
 		}
 
-		rect := image.Rect(int(x), int(y), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y-fixed266ToFloat(g.Height)*r.PixScale))
+		rect := image.Rect(int(x), int(top), int(right), int(bottom))
 		scale.NearestNeighbor.Scale(img, rect, sub, sub.Bounds(), draw.Over, nil)
 	case api.JPG, api.PNG, api.TIFF:
 		pix, _, err := image.Decode(bytes.NewReader(bitmap.Data))
@@ -61,7 +65,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 			return err
 		}
 
-		rect := image.Rect(int(x), int(y), int(x+fixed266ToFloat(g.Width)*r.PixScale), int(y-fixed266ToFloat(g.Height)*r.PixScale))
+		rect := image.Rect(int(x), int(top), int(right), int(bottom))
 		scale.BiLinear.Scale(img, rect, pix, pix.Bounds(), draw.Over, nil)
 	}
 

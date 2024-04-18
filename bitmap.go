@@ -3,6 +3,7 @@ package render
 import (
 	"bytes"
 	"image"
+	"image/color"
 	"image/draw"
 	_ "image/jpeg" // load image formats for users of the API
 	_ "image/png"
@@ -22,39 +23,10 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 	switch bitmap.Format {
 	case api.BlackAndWhite:
 		rec := image.Rect(0, 0, bitmap.Width, bitmap.Height)
-		sub := image.NewNRGBA(rec)
+		sub := image.NewPaletted(rec, color.Palette{color.Transparent, r.Color})
 
-		i := 0
-		for y2 := 0; y2 < bitmap.Height; y2++ {
-			for x2 := 0; x2 < bitmap.Width; x2 += 8 {
-				v := bitmap.Data[i]
-
-				if v&1 > 0 {
-					sub.Set(x2+7, y2, r.Color)
-				}
-				if v&2 > 0 {
-					sub.Set(x2+6, y2, r.Color)
-				}
-				if v&4 > 0 {
-					sub.Set(x2+5, y2, r.Color)
-				}
-				if v&8 > 0 {
-					sub.Set(x2+4, y2, r.Color)
-				}
-				if v&16 > 0 {
-					sub.Set(x2+3, y2, r.Color)
-				}
-				if v&32 > 0 {
-					sub.Set(x2+2, y2, r.Color)
-				}
-				if v&64 > 0 {
-					sub.Set(x2+1, y2, r.Color)
-				}
-				if v&128 > 0 {
-					sub.Set(x2, y2, r.Color)
-				}
-				i++
-			}
+		for i := range sub.Pix {
+			sub.Pix[i] = bitAt(bitmap.Data, i)
 		}
 
 		rect := image.Rect(int(x), int(top), int(right), int(bottom))
@@ -73,4 +45,9 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 		r.drawOutline(g, *bitmap.Outline, r.filler, r.fillerScale, x, y)
 	}
 	return nil
+}
+
+// bitAt returns the bit at the given index in the byte slice.
+func bitAt(b []byte, i int) byte {
+	return (b[i/8] >> (7 - i%8)) & 1
 }

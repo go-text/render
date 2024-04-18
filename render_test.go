@@ -56,6 +56,10 @@ func Test_Render(t *testing.T) {
 	r.Color = color.NRGBA{R: 0xcc, G: 0x66, B: 0x33, A: 0xcc}
 	r.DrawStringAt("\uE0A2░", img, 366, 164, f4)
 
+	data, _ = os.Open("testdata/cherry/cherry-10-r.otb")
+	f5, _ := font.ParseTTF(data)
+	(&render.Renderer{FontSize: 10, PixScale: 1, Color: color.Black}).DrawStringAt("Hello, world!", img, 6, 10, f5)
+
 	str = "Hello ज्या 😀! 🎁 fin."
 	rs := []rune(str)
 	sh := &shaping.HarfbuzzShaper{}

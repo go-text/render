@@ -8,20 +8,19 @@ import (
 	_ "image/jpeg" // load image formats for users of the API
 	_ "image/png"
 
+	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/shaping"
 	scale "golang.org/x/image/draw"
 	_ "golang.org/x/image/tiff" // load image formats for users of the API
-
-	"github.com/go-text/typesetting/opentype/api"
 )
 
-func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.Image, x, y float32) error {
+func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap font.GlyphBitmap, img draw.Image, x, y float32) error {
 	// scaled glyph rect content
 	top := y - fixed266ToFloat(g.YBearing)*r.PixScale
 	bottom := top - fixed266ToFloat(g.Height)*r.PixScale
 	right := x + fixed266ToFloat(g.Width)*r.PixScale
 	switch bitmap.Format {
-	case api.BlackAndWhite:
+	case font.BlackAndWhite:
 		rec := image.Rect(0, 0, bitmap.Width, bitmap.Height)
 		sub := image.NewPaletted(rec, color.Palette{color.Transparent, r.Color})
 
@@ -31,7 +30,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap api.GlyphBitmap, img draw.
 
 		rect := image.Rect(int(x), int(top), int(right), int(bottom))
 		scale.NearestNeighbor.Scale(img, rect, sub, sub.Bounds(), draw.Over, nil)
-	case api.JPG, api.PNG, api.TIFF:
+	case font.JPG, font.PNG, font.TIFF:
 		pix, _, err := image.Decode(bytes.NewReader(bitmap.Data))
 		if err != nil {
 			return err

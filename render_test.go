@@ -70,7 +70,7 @@ func Test_Render(t *testing.T) {
 		Size:     fixed.I(int(r.FontSize)),
 	}
 	seg := shaping.Segmenter{}
-	runs := seg.Split(in, fixedFontmap([]font.Face{f1, f2, f3}))
+	runs := seg.Split(in, fixedFontmap([]*font.Face{f1, f2, f3}))
 
 	line := make(shaping.Line, len(runs))
 	for i, run := range runs {
@@ -133,10 +133,10 @@ func TestRenderHindi(t *testing.T) {
 	w.Close()
 }
 
-type fixedFontmap []font.Face
+type fixedFontmap []*font.Face
 
 // ResolveFace panics if the slice is empty
-func (ff fixedFontmap) ResolveFace(r rune) font.Face {
+func (ff fixedFontmap) ResolveFace(r rune) *font.Face {
 	for _, f := range ff {
 		if _, has := f.NominalGlyph(r); has {
 			return f

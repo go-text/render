@@ -6,13 +6,13 @@ import (
 	"image/draw"
 	"io"
 
-	"github.com/go-text/typesetting/opentype/api"
+	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/shaping"
 	"github.com/srwiley/oksvg"
 	"github.com/srwiley/rasterx"
 )
 
-func (r *Renderer) drawSVG(g shaping.Glyph, svg api.GlyphSVG, img draw.Image, x, y float32) error {
+func (r *Renderer) drawSVG(g shaping.Glyph, svg font.GlyphSVG, img draw.Image, x, y float32) error {
 	pixWidth := int(fixed266ToFloat(g.Width) * r.PixScale)
 	pixHeight := int(fixed266ToFloat(-g.Height) * r.PixScale)
 	pix, err := renderSVGStream(bytes.NewReader(svg.Source), pixWidth, pixHeight)

@@ -1,10 +1,10 @@
 package render
 
 import (
-	"fmt"
 	"image/color"
 	"image/draw"
 	"math"
+	"sort"
 
 	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/font/opentype"
@@ -54,16 +54,14 @@ func (r *Renderer) shape(str string, face *font.Face) (_ shaping.Line, ascent in
 		}
 	}
 
-	// // overall direction of the text, deduced from the first runes
-	// direction := line[0].Direction
-	// r.wrapper.Prepare(shaping.WrapConfig{Direction: direction}, text, shaping.NewSliceIterator(line))
-	// wrapped, _ := r.wrapper.WrapNextLine(math.MaxInt)
-	// line = wrapped.Line
+	// overall direction of the text, deduced from the first runes
+	direction := line[0].Direction
+	r.wrapper.Prepare(shaping.WrapConfig{Direction: direction}, text, shaping.NewSliceIterator(line))
+	wrapped, _ := r.wrapper.WrapNextLine(math.MaxInt)
+	line = wrapped.Line
 
-	// // sort the line by visual order
-	// sort.Slice(line, func(i, j int) bool { return line[i].VisualIndex < line[j].VisualIndex })
-
-	fmt.Println(line, ascent)
+	// sort the line by visual order
+	sort.Slice(line, func(i, j int) bool { return line[i].VisualIndex < line[j].VisualIndex })
 
 	return line, ascent
 }

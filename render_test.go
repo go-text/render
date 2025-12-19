@@ -171,5 +171,30 @@ func TestBitmapBaseline(t *testing.T) {
 	if !bytes.Equal(pngBytes.Bytes(), reference) {
 		t.Error("unexpected image output")
 	}
+}
 
+func TestMixedLTR_RTL(t *testing.T) {
+	s := "وَرَسُولِهِ وَإِنْ تُبْتُمْ فَلَكُمْ رُءُوسُ hello أَمْوَالِكُمْ لَا تَظْلِمُونَ وَلَا تُظْلَمُونَ ( 279 ) وَإِنْ كَانَ ذُو عُسْرَةٍ فَنَظِرَةٌ إِلَى مَيْسَرَةٍ"
+
+	data, _ := ot.Files.ReadFile("common/NotoSansArabic.ttf")
+	face, _ := font.ParseTTF(bytes.NewReader(data))
+
+	img := image.NewNRGBA(image.Rect(0, 0, 800, 40))
+	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+
+	r := render.Renderer{FontSize: 15, Color: color.Black}
+	r.DrawString(s, img, face)
+
+	// w, _ := os.Create("testdata/mixed_ltr_rtl.png")
+	// _ = png.Encode(w, img)
+	// w.Close()
+
+	// compare against the reference
+	var pngBytes bytes.Buffer
+	png.Encode(&pngBytes, img)
+
+	reference, _ := os.ReadFile("testdata/mixed_ltr_rtl.png")
+	if !bytes.Equal(pngBytes.Bytes(), reference) {
+		t.Error("unexpected image output")
+	}
 }

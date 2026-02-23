@@ -3,8 +3,8 @@ module github.com/go-text/render
 go 1.19
 
 require (
-	github.com/go-text/typesetting v0.3.3
-	github.com/go-text/typesetting-utils v0.0.0-20250620161931-017769003e3c
+	github.com/go-text/typesetting v0.3.4-0.20260223162014-72238c6215e4
+	github.com/go-text/typesetting-utils v0.0.0-20260223113751-2d88ac90dae3
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef
 	golang.org/x/image v0.23.0

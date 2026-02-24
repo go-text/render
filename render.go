@@ -122,7 +122,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 			_ = r.drawSVG(g, format, img, xPos, yPos)
 		}
 
-		x += fixed266ToFloat(g.XAdvance) * r.PixScale
+		x += fixed266ToFloat(g.Advance) * r.PixScale
 	}
 	f.Draw()
 	r.filler = nil

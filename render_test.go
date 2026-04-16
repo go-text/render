@@ -6,7 +6,9 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/go-text/render"
@@ -196,5 +198,45 @@ func TestMixedLTR_RTL(t *testing.T) {
 	reference, _ := os.ReadFile("testdata/mixed_ltr_rtl.png")
 	if !bytes.Equal(pngBytes.Bytes(), reference) {
 		t.Error("unexpected image output")
+	}
+}
+
+func BenchmarkDrawString(b *testing.B) {
+	for name, bb := range map[string]struct {
+		text     string
+		fontFile string
+	}{
+		"Hello World": {
+			text:     "Hello, world!",
+			fontFile: "testdata/NotoSans-Regular.ttf",
+		},
+		"Lorem Ipsum": {
+			text:     "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+			fontFile: "testdata/NotoSans-Regular.ttf",
+		},
+		"Arabic Ipsum": {
+			text:     "هنالك العديد من الأنواع المتوفرة لنصوص لوريم إيبسوم، ولكن الغالبية تم تعديلها بشكل ما عبر إدخال بعض النوادر أو الكلمات العشوائية إلى النص. إن كنت تريد أن تستخدم نص لوريم إيبسوم ما، عليك أن تتحقق أولاً أن ليس هناك أي كلمات أو عبارات محرجة أو غير لائقة مخبأة في هذا النص. بينما تعمل جميع مولّدات نصوص لوريم إيبسوم على الإنترنت على إعادة تكرار مقاطع من نص لوريم إيبسوم نفسه عدة مرات بما تتطلبه الحاجة، يقوم مولّدنا هذا باستخدام كلمات من قاموس يحوي على أكثر من 200 كلمة لا تينية، مضاف إليها مجموعة من الجمل النموذجية، لتكوين نص لوريم إيبسوم ذو شكل منطقي قريب إلى النص الحقيقي. وبالتالي يكون النص الناتح خالي من التكرار، أو أي كلمات أو عبارات غير لائقة أو ما شابه. وهذا ما يجعله أول مولّد نص لوريم إيبسوم حقيقي على الإنترنت. ",
+			fontFile: "common/NotoSansArabic.ttf",
+		},
+	} {
+		b.Run(name, func(b *testing.B) {
+			var data []byte
+			if strings.HasPrefix(bb.fontFile, "testdata") {
+				f, _ := os.Open(bb.fontFile)
+				data, _ = io.ReadAll(f)
+			} else {
+				data, _ = ot.Files.ReadFile(bb.fontFile)
+			}
+
+			face, _ := font.ParseTTF(bytes.NewReader(data))
+
+			img := image.NewRGBA(image.Rect(0, 0, 800, 40))
+			draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+
+			r := render.Renderer{FontSize: 15, Color: color.Black}
+			for i := 0; i < b.N; i++ {
+				r.DrawString(bb.text, img, face)
+			}
+		})
 	}
 }

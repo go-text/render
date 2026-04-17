@@ -41,7 +41,7 @@ func (r *Renderer) drawBitmap(g shaping.Glyph, bitmap font.GlyphBitmap, img draw
 	}
 
 	if bitmap.Outline != nil {
-		r.drawOutline(g, *bitmap.Outline, r.filler, r.fillerScale, x, y)
+		r.drawOutline(*bitmap.Outline, r.fillerScale, x, y)
 	}
 	return nil
 }

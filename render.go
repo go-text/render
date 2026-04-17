@@ -1,6 +1,7 @@
 package render
 
 import (
+	"image"
 	"image/color"
 	"image/draw"
 	"math"
@@ -9,8 +10,8 @@ import (
 	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/font/opentype"
 	"github.com/go-text/typesetting/shaping"
-	"github.com/srwiley/rasterx"
 	"golang.org/x/image/math/fixed"
+	"golang.org/x/image/vector"
 )
 
 // Renderer defines a type that can render strings to a bitmap canvas.
@@ -30,7 +31,7 @@ type Renderer struct {
 	segmenter   shaping.Segmenter
 	shaper      shaping.HarfbuzzShaper
 	wrapper     shaping.LineWrapper
-	filler      *rasterx.Filler
+	rasterizer  *vector.Rasterizer
 	fillerScale float32
 }
 
@@ -96,17 +97,16 @@ func (r *Renderer) DrawStringAt(str string, img draw.Image, x, y int, face *font
 // Note that startX and startY are not multiplied by the `PixScale` value as they refer to output coordinates.
 // The return value is the X pixel position of the end of the drawn string.
 func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, startY int) int {
+	if r.rasterizer == nil {
+		r.rasterizer = &vector.Rasterizer{}
+	}
+	r.rasterizer.Reset(img.Bounds().Dx(), img.Bounds().Dy())
 	if r.PixScale == 0 {
 		r.PixScale = 1
 	}
 	scale := r.FontSize * r.PixScale / float32(run.Face.Upem())
 	r.fillerScale = scale
 
-	b := img.Bounds()
-	scanner := rasterx.NewScannerGV(b.Dx(), b.Dy(), img, b)
-	f := rasterx.NewFiller(b.Dx(), b.Dy(), scanner)
-	r.filler = f
-	f.SetColor(r.Color)
 	x := float32(startX)
 	y := float32(startY)
 	for _, g := range run.Glyphs {
@@ -115,7 +115,7 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 		data := run.Face.GlyphData(g.GlyphID)
 		switch format := data.(type) {
 		case font.GlyphOutline:
-			r.drawOutline(g, format, f, scale, xPos, yPos)
+			r.drawOutline(format, scale, xPos, yPos)
 		case font.GlyphBitmap:
 			_ = r.drawBitmap(g, format, img, xPos, yPos)
 		case font.GlyphSVG:
@@ -124,36 +124,31 @@ func (r *Renderer) DrawShapedRunAt(run shaping.Output, img draw.Image, startX, s
 
 		x += fixed266ToFloat(g.Advance) * r.PixScale
 	}
-	f.Draw()
-	r.filler = nil
+	r.rasterizer.Draw(img, img.Bounds(), image.NewUniform(r.Color), image.Point{})
 	return int(math.Ceil(float64(x)))
 }
 
-func (r *Renderer) drawOutline(g shaping.Glyph, bitmap font.GlyphOutline, f *rasterx.Filler, scale float32, x, y float32) {
+func (r *Renderer) drawOutline(bitmap font.GlyphOutline, scale float32, x, y float32) {
+	raster := r.rasterizer
 	for _, s := range bitmap.Segments {
 		switch s.Op {
 		case opentype.SegmentOpMoveTo:
-			f.Start(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
+			raster.MoveTo(s.Args[0].X*scale+x, -s.Args[0].Y*scale+y)
 		case opentype.SegmentOpLineTo:
-			f.Line(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)})
+			raster.LineTo(s.Args[0].X*scale+x, -s.Args[0].Y*scale+y)
 		case opentype.SegmentOpQuadTo:
-			f.QuadBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
-				fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)})
+			raster.QuadTo(s.Args[0].X*scale+x, -s.Args[0].Y*scale+y, s.Args[1].X*scale+x, -s.Args[1].Y*scale+y)
 		case opentype.SegmentOpCubeTo:
-			f.CubeBezier(fixed.Point26_6{X: floatToFixed266(s.Args[0].X*scale + x), Y: floatToFixed266(-s.Args[0].Y*scale + y)},
-				fixed.Point26_6{X: floatToFixed266(s.Args[1].X*scale + x), Y: floatToFixed266(-s.Args[1].Y*scale + y)},
-				fixed.Point26_6{X: floatToFixed266(s.Args[2].X*scale + x), Y: floatToFixed266(-s.Args[2].Y*scale + y)})
+			raster.CubeTo(s.Args[0].X*scale+x, -s.Args[0].Y*scale+y,
+				s.Args[1].X*scale+x, -s.Args[1].Y*scale+y,
+				s.Args[2].X*scale+x, -s.Args[2].Y*scale+y)
 		}
 	}
-	f.Stop(true)
+	raster.ClosePath()
 }
 
 func fixed266ToFloat(i fixed.Int26_6) float32 {
 	return float32(float64(i) / 64)
-}
-
-func floatToFixed266(f float32) fixed.Int26_6 {
-	return fixed.Int26_6(int(float64(f) * 64))
 }
 
 type singleFontMap struct {
